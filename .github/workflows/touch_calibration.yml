@@ -1,0 +1,44 @@
+name: T-HMI touch_calibration CI
+on:
+  push:
+    paths:
+      - "examples/touch_calibration/**"
+      - "platformio/**"
+      - ".github/workflows/touch_calibration.yml"
+
+  pull_request:
+    paths:
+      - "examples/touch_calibration/**"
+      - "platformio/**"
+      - ".github/workflows/touch_calibration.yml"
+
+jobs:
+  platformio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Cache PlatformIO
+        uses: actions/cache@v3
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Set up Python
+        uses: actions/setup-python@v3
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+      - name: Run PlatformIO
+        run: cd examples/touch_calibration && pio run -e release
+      - name: Deliver firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: LILYGO_T-HMI_touch_calibration_firmware
+          path: examples/touch_calibration/.pio/bin/
